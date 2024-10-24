@@ -1,0 +1,72 @@
+name: NEW DEPLOY FACTORY DEV
+
+on: workflow_dispatch
+            
+permissions:
+      id-token: write
+      contents: read
+env:
+  DEV_RESOURCE_GROUP_NAME: rg_poc_desjardins_dev
+  DEV_FACTORY_NAME: adf-desjardins-poc-dev
+  
+jobs:
+  BuildFactory:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v3
+# Installs Node and the npm packages saved in your package.json file in the build
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v3.4.1
+      with:
+        node-version: 18.x
+        
+    - name: Install ADF Utilities package
+      run: npm install
+      working-directory: ${{github.workspace}}/deployment_build  # (1) provide the folder location of the package.json file
+        
+# Validates all of the Data Factory resources in the repository. You'll get the same validation errors as when "Validate All" is selected.
+    - name: Validate Factory
+      run: npm run build validate ${{github.workspace}}/adf-dev/ /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.DEV_RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DEV_FACTORY_NAME }} # (2) The validate command needs the root folder location of your repository where all the objects are stored. And the 2nd parameter is the resourceID of the ADF instance 
+      working-directory: ${{github.workspace}}/deployment_build
+
+    - name: Generate and Export ARM template
+      run: npm run build export ${{github.workspace}}/adf-dev/ /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.DEV_RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DEV_FACTORY_NAME }} "FactoryArtifact"  # (3) The build command, as validate, needs the root folder location of your repository where all the objects are stored. And the 2nd parameter is the resourceID of the ADF instance. The 3rd parameter is the exported ARM template artifact name 
+      working-directory: ${{github.workspace}}/deployment_build
+      
+# In order to leverage the artifact in another job, we need to upload it with the upload action 
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: FactoryArtifact # (4) use the same artifact name you used in the previous export step
+        path: ${{github.workspace}}/deployment_build
+        
+  Deploy:
+      needs: BuildFactory
+      runs-on: ubuntu-latest
+      steps:
+
+   # we 1st download the previously uploaded artifact so we can leverage it later in the release job     
+        - name: Download Build Artifact
+          uses: actions/download-artifact@v3.0.2
+          with:
+            name: FactoryArtifact # (5) Artifact name 
+
+
+        - name: Login via Az module
+          uses: azure/login@v2
+          with:
+            client-id: ${{ secrets.DEV_UAMI_CLIENT_ID }}
+            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+            subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+            enable-AzPSSession: true 
+
+        - name: Deploy Data Factory
+          uses: Azure/data-factory-deploy-action@v1.2.0
+          with:
+            resourceGroupName: ${{ env.DEV_RESOURCE_GROUP_NAME }}
+            dataFactoryName: ${{ env.DEV_FACTORY_NAME }}
+            armTemplateFile: FactoryArtifact/linkedTemplates/ArmTemplate_master.json
+            armTemplateParametersFile: FactoryArtifact/linkedTemplates/ArmTemplateParameters_master.json
+            additionalParameters: containerUri=https://stapocdesjardins.blob.core.windows.net/deployment-templates?sp=r&st=2024-10-24T13:09:57Z&se=2025-01-01T22:09:57Z&spr=https&sv=2022-11-02&sr=c&sig=4I9mVLbGqz2jeaxycHOofhaS3W55T%2FoJ%2BfW0DVgIp4Y%3D containerSasToken=sp=r&st=2024-10-24T13:09:57Z&se=2025-01-01T22:09:57Z&spr=https&sv=2022-11-02&sr=c&sig=4I9mVLbGqz2jeaxycHOofhaS3W55T%2FoJ%2BfW0DVgIp4Y%3D
+          # (10) Parameters which will be replaced in the ARM template. Expected format 'key1=value key2=value keyN=value'. At the minimum here you should provide the target ADF name parameter. Check the ARMTemplateParametersForFactory.json file for all the parameters that are expected in your scenar
