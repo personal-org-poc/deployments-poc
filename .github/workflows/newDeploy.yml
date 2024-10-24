@@ -68,5 +68,5 @@ jobs:
             dataFactoryName: ${{ env.DEV_FACTORY_NAME }}
             armTemplateFile: FactoryArtifact/linkedTemplates/ArmTemplate_master.json
             armTemplateParametersFile: FactoryArtifact/linkedTemplates/ArmTemplateParameters_master.json
-            additionalParameters: containerUri=https://stapocdesjardins.blob.core.windows.net/deployment-templates containerSasToken=sp=r&st=2024-10-24T13:09:57Z&se=2025-01-01T22:09:57Z&spr=https&sv=2022-11-02&sr=c&sig=4I9mVLbGqz2jeaxycHOofhaS3W55T%2FoJ%2BfW0DVgIp4Y%3D
+            additionalParameters: containerUri=https://stapocdesjardins.blob.core.windows.net/deployment-templates containerSasToken=sp=racwdli&st=2024-10-24T15:12:36Z&se=2024-10-24T23:12:36Z&sip=0.0.0.0-255.255.255.0&spr=https&sv=2022-11-02&sr=c&sig=gn%2FCtD57LCA3i8bo6h9K7%2FIXDj1xbT1QJdl8gr6wGiQ%3D
           # (10) Parameters which will be replaced in the ARM template. Expected format 'key1=value key2=value keyN=value'. At the minimum here you should provide the target ADF name parameter. Check the ARMTemplateParametersForFactory.json file for all the parameters that are expected in your scenar
