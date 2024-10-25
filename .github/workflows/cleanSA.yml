@@ -1,0 +1,27 @@
+name: Clean SA
+
+on: workflow_dispatch
+            
+permissions:
+      id-token: write
+      contents: read
+env:
+  DEV_RESOURCE_GROUP_NAME: rg_poc_desjardins_dev
+  DEV_FACTORY_NAME: adf-desjardins-poc-dev
+  STORAGE_ACCOUNT_URI: https://stapocdesjardins.blob.core.windows.net/deployment-templates
+  AZURE_STORAGE_SAS_TOKEN: sp=rwdl&st=2024-10-25T12:50:34Z&se=2024-10-25T20:50:34Z&spr=https&sv=2022-11-02&sr=c&sig=Q0jIOh3bMofNztPzvzNKkiMejW5xEp1%2F4q31IwVhsxk%3D
+  
+jobs:
+  BuildFactory:
+    runs-on: ubuntu-latest
+    steps:
+  # Install Azure CLI
+        - name: Install Azure CLI
+          run: |
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+        - name: Delete Existing Files from Storage Account
+          run: |
+            az storage blob delete-batch \
+              --source '${{ env.STORAGE_ACCOUNT_URI }}' \
+              --sas-token '${{ env.AZURE_STORAGE_SAS_TOKEN }}'
