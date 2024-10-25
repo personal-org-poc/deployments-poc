@@ -9,7 +9,7 @@ env:
   DEV_RESOURCE_GROUP_NAME: rg_poc_desjardins_dev
   DEV_FACTORY_NAME: adf-desjardins-poc-dev
   STORAGE_ACCOUNT_URI: https://stapocdesjardins.blob.core.windows.net/deployments
-  AZURE_STORAGE_SAS_TOKEN: sp=rwl&st=2024-10-25T12:18:02Z&se=2024-10-25T20:18:02Z&spr=https&sv=2022-11-02&sr=c&sig=Ijp0vxZrONZ1oopYJaSM5m2tak5CKhF%2FPzQwD%2BrIZEY%3D
+  AZURE_STORAGE_SAS_TOKEN: sp=rwdl&st=2024-10-25T14:05:37Z&se=2024-10-25T22:05:37Z&spr=https&sv=2022-11-02&sr=c&sig=avOo3V4ayhPUfSxpjgYr6JQxRRBK82qWZnhgftIt7HQ%3D
   
 jobs:
   BuildFactory:
