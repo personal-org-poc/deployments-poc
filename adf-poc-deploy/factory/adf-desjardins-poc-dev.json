@@ -1,0 +1,9 @@
+{
+	"name": "adf-desjardins-poc-dev",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "5880db16-c523-4be6-bffe-d04545593679",
+		"tenantId": "36da45f1-dd2c-4d1f-af13-5abe46b99921"
+	}
+}
