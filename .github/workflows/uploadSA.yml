@@ -54,23 +54,12 @@ jobs:
           with:
             name: FactoryArtifact # (5) Artifact name - name: Upload Files to Storage Account
         
-        - name: Install AzCopy
-          run: |
-            curl -sL https://aka.ms/downloadazcopy-v10-linux | tar -xz
-            sudo cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
-        
-        - name: Login via Az module
-          uses: azure/login@v2
+        - name : Upload Templates to Storage Account
+          uses: bacongobbler/azure-blob-storage-upload@main
           with:
-            client-id: ${{ secrets.DEV_UAMI_CLIENT_ID }}
-            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-            subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-            enable-AzPSSession: true 
-        
-        - name: Upload Files to Storage Account
-          env:
-            AZURE_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
-          run: |
-            azcopy copy "FactoryArtifact/linkedTemplates/*" "${{ env.STORAGE_ACCOUNT_URI }}?${{ env.AZURE_STORAGE_SAS_TOKEN }}" --recursive
+            source_dir: FactoryArtifact/linkedTemplates/*
+            container_name: deployment-templates
+            connection_string: DefaultEndpointsProtocol=https;AccountName=stapocdesjardins;AccountKey=sgvG4oDoJqDMpcyLIAHtkFdHo6cPGoYcCPf6xqb6dy3jcT4lJex+aq7lcf/VLtemoMI9OPXjrE7l+ASt0G2n2g==;EndpointSuffix=core.windows.net
+            overwrite: 'true'
 
 
