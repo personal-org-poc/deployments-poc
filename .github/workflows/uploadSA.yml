@@ -1,4 +1,4 @@
-name: NEW DEPLOY FACTORY DEV
+name: Upload to SA
 
 on: workflow_dispatch
             
