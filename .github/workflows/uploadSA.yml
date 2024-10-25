@@ -1,36 +1,68 @@
-# This is a basic workflow to help you get started with Actions
+name: NEW DEPLOY FACTORY DEV
 
-name: CI
-
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+on: workflow_dispatch
+            
+permissions:
+      id-token: write
+      contents: read
+env:
+  DEV_RESOURCE_GROUP_NAME: rg_poc_desjardins_dev
+  DEV_FACTORY_NAME: adf-desjardins-poc-dev
+  STORAGE_ACCOUNT_URI: https://stapocdesjardins.blob.core.windows.net/deployment-templates
+  AZURE_STORAGE_SAS_TOKEN: sp=rwl&st=2024-10-25T12:18:02Z&se=2024-10-25T20:18:02Z&spr=https&sv=2022-11-02&sr=c&sig=Ijp0vxZrONZ1oopYJaSM5m2tak5CKhF%2FPzQwD%2BrIZEY%3D
+  
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  BuildFactory:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+    - uses: actions/checkout@v3
+# Installs Node and the npm packages saved in your package.json file in the build
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v3.4.1
+      with:
+        node-version: 18.x
+        
+    - name: Install ADF Utilities package
+      run: npm install
+      working-directory: ${{github.workspace}}/deployment_build  # (1) provide the folder location of the package.json file
+        
+# Validates all of the Data Factory resources in the repository. You'll get the same validation errors as when "Validate All" is selected.
+    - name: Validate Factory
+      run: npm run build validate ${{github.workspace}}/adf-poc-deploy/ /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.DEV_RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DEV_FACTORY_NAME }} # (2) The validate command needs the root folder location of your repository where all the objects are stored. And the 2nd parameter is the resourceID of the ADF instance 
+      working-directory: ${{github.workspace}}/deployment_build
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+    - name: Generate and Export ARM template
+      run: npm run build export ${{github.workspace}}/adf-poc-deploy/ /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.DEV_RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DEV_FACTORY_NAME }} "FactoryArtifact"  # (3) The build command, as validate, needs the root folder location of your repository where all the objects are stored. And the 2nd parameter is the resourceID of the ADF instance. The 3rd parameter is the exported ARM template artifact name 
+      working-directory: ${{github.workspace}}/deployment_build
+      
+# In order to leverage the artifact in another job, we need to upload it with the upload action 
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: FactoryArtifact # (4) use the same artifact name you used in the previous export step
+        path: ${{github.workspace}}/deployment_build
+        
+  Deploy:
+      needs: BuildFactory
+      runs-on: ubuntu-latest
+      steps:
+
+   # we 1st download the previously uploaded artifact so we can leverage it later in the release job     
+        - name: Download Build Artifact
+          uses: actions/download-artifact@v3.0.2
+          with:
+            name: FactoryArtifact # (5) Artifact name - name: Upload Files to Storage Account
+        
+        - name: Install AzCopy
+          run: |
+            curl -sL https://aka.ms/downloadazcopy-v10-linux | tar -xz
+            sudo cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
+
+        - name: Upload Files to Storage Account
+          env:
+            AZURE_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
+          run: |
+            azcopy copy "FactoryArtifact/linkedTemplates/*" "${{ env.STORAGE_ACCOUNT_URI }}?${{ env.AZURE_STORAGE_SAS_TOKEN }}" --recursive
+
+
