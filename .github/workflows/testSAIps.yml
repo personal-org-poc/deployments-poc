@@ -1,0 +1,38 @@
+name: Access Azure Storage Account
+
+on: workflow_dispatch
+
+jobs:
+  whitelist_ip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}  # JSON with AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_CLIENT_SECRET, AZURE_SUBSCRIPTION_ID
+
+      - name: Get Runner Public IP
+        id: get_ip
+        run: |
+          export RUNNER_IP=$(curl -s https://api.ipify.org)
+          echo "Runner IP is $RUNNER_IP"
+          echo "RUNNER_IP=${RUNNER_IP}" >> $GITHUB_ENV
+
+      - name: Whitelist Runner IP in Storage Account
+        run: |
+          az storage account update --name stapocdesjardins \
+                                    --resource-group rg_poc_desjardins_dev \
+                                    --default-action Deny \
+                                    --ip-rules $RUNNER_IP
+
+      - name: Run main task (access storage)
+        # Add the steps that need access to the Azure Storage account here.
+        run: |
+          echo "Running task with temporary IP access to storage account..."
+
+      - name: Remove Runner IP from Storage Account
+        if: always()  # Ensures this step runs even if previous steps fail
+        run: |
+          az storage account update --name stapocdesjardins \
+                                    --resource-group rg_poc_desjardins_dev \
+                                    --remove networkRuleSet.ipRules
