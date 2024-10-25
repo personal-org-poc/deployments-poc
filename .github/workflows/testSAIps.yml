@@ -28,7 +28,7 @@ jobs:
 
       - name: Whitelist Runner IP in Storage Account
         run: |
-          az storage account update --resource-group group_name --name accountname --default-action Deny
+          az storage account update --resource-group rg_poc_desjardins_dev --name stapocdesjardins --default-action Deny
 
       - name: Run main task (access storage)
         # Add the steps that need access to the Azure Storage account here.
