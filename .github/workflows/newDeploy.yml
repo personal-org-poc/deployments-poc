@@ -27,11 +27,11 @@ jobs:
         
 # Validates all of the Data Factory resources in the repository. You'll get the same validation errors as when "Validate All" is selected.
     - name: Validate Factory
-      run: npm run build validate ${{github.workspace}}/adf-dev/ /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.DEV_RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DEV_FACTORY_NAME }} # (2) The validate command needs the root folder location of your repository where all the objects are stored. And the 2nd parameter is the resourceID of the ADF instance 
+      run: npm run build validate ${{github.workspace}}/adf-poc-deploy/ /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.DEV_RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DEV_FACTORY_NAME }} # (2) The validate command needs the root folder location of your repository where all the objects are stored. And the 2nd parameter is the resourceID of the ADF instance 
       working-directory: ${{github.workspace}}/deployment_build
 
     - name: Generate and Export ARM template
-      run: npm run build export ${{github.workspace}}/adf-dev/ /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.DEV_RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DEV_FACTORY_NAME }} "FactoryArtifact"  # (3) The build command, as validate, needs the root folder location of your repository where all the objects are stored. And the 2nd parameter is the resourceID of the ADF instance. The 3rd parameter is the exported ARM template artifact name 
+      run: npm run build export ${{github.workspace}}/adf-poc-deploy/ /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.DEV_RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DEV_FACTORY_NAME }} "FactoryArtifact"  # (3) The build command, as validate, needs the root folder location of your repository where all the objects are stored. And the 2nd parameter is the resourceID of the ADF instance. The 3rd parameter is the exported ARM template artifact name 
       working-directory: ${{github.workspace}}/deployment_build
       
 # In order to leverage the artifact in another job, we need to upload it with the upload action 
