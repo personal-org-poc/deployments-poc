@@ -1,9 +1,0 @@
-{
-	"name": "adf-desjardins-poc-dev",
-	"location": "westeurope",
-	"identity": {
-		"type": "SystemAssigned",
-		"principalId": "a6b33cd0-ccd7-4548-a4e0-58fa6089fc91",
-		"tenantId": "36da45f1-dd2c-4d1f-af13-5abe46b99921"
-	}
-}

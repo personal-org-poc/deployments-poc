@@ -1,7 +1,0 @@
-{
-	"name": "pme-adf-to-sql",
-	"properties": {
-		"privateLinkResourceId": "/subscriptions/7f462870-0f6e-490c-ac6d-5b9820be5fa9/resourceGroups/rg_poc_desjardins_dev/providers/Microsoft.Sql/servers/svpocdesjardins",
-		"groupId": "sqlServer"
-	}
-}
