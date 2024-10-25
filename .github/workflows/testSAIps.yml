@@ -28,19 +28,11 @@ jobs:
 
       - name: Whitelist Runner IP in Storage Account
         run: |
-          az storage account update --name stapocdesjardins \
-                                    --resource-group rg_poc_desjardins_dev \
-                                    --default-action Deny \
-                                    --ip-rules $RUNNER_IP
+          az storage account network-rule add --resource-group stapocdesjardins \
+                                              --account-name rg_poc_desjardins_dev \
+                                              --ip-address $RUNNER_IP
 
       - name: Run main task (access storage)
         # Add the steps that need access to the Azure Storage account here.
         run: |
           echo "Running task with temporary IP access to storage account..."
-
-      - name: Remove Runner IP from Storage Account
-        if: always()  # Ensures this step runs even if previous steps fail
-        run: |
-          az storage account update --name stapocdesjardins \
-                                    --resource-group rg_poc_desjardins_dev \
-                                    --remove networkRuleSet.ipRules
