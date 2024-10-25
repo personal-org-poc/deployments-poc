@@ -54,12 +54,18 @@ jobs:
           with:
             name: FactoryArtifact # (5) Artifact name - name: Upload Files to Storage Account
         
-        - name : Upload Templates to Storage Account
-          uses: bacongobbler/azure-blob-storage-upload@main
-          with:
-            source_dir: FactoryArtifact/linkedTemplates/*
-            container_name: deployment-templates
-            connection_string: DefaultEndpointsProtocol=https;AccountName=stapocdesjardins;AccountKey=sgvG4oDoJqDMpcyLIAHtkFdHo6cPGoYcCPf6xqb6dy3jcT4lJex+aq7lcf/VLtemoMI9OPXjrE7l+ASt0G2n2g==;EndpointSuffix=core.windows.net
-            overwrite: 'true'
+  # Install Azure CLI
+        - name: Install Azure CLI
+          run: |
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      # Upload Files from 'FactoryArtifact/linkedTemplates' to Storage Account
+        - name: Upload to Storage Account
+          run: |
+            az storage blob upload-batch \
+              --destination '${{ env.STORAGE_ACCOUNT_URI }}' \
+              --source './FactoryArtifact/linkedTemplates' \
+              --sas-token '${{ env.AZURE_STORAGE_SAS_TOKEN }}' \
+              --overwrite
 
 
